@@ -53,6 +53,11 @@ class Car
      */
     private $rents;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $discretionaryMileage;
+
     public function __construct()
     {
         $this->indisponibilities = new ArrayCollection();
@@ -71,7 +76,7 @@ class Car
 
     public function setMileage(int $mileage): self
     {
-        $this->mileage = $this->extractMileage($mileage);
+        $this->mileage = $this->extractMileage();
 
         return $this;
     }
@@ -136,22 +141,20 @@ class Car
     }
 
     /**
-     * @param int $mileage
-     *
      * @return int
      *
      * @throws \OutOfBoundsException
      */
-    private static function extractMileage(int $mileage): int
+    private static function extractMileage(): int
     {
-        if ($mileage < 1) {
+        if ($this->discretionaryMileage < 1) {
             throw new \OutOfBoundsException();
         }
-        if ($mileage < 50000) {
+        if ($this->discretionaryMileage < 50000) {
             return 1;
-        } elseif ($mileage < 100000) {
+        } elseif ($this->discretionaryMileage < 100000) {
             return 2;
-        } elseif ($mileage < 150000) {
+        } elseif ($this->discretionaryMileage < 150000) {
             return 3;
         } else {
             return 4;
@@ -216,6 +219,18 @@ class Car
                 $rent->setCar(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDiscretionaryMileage(): ?int
+    {
+        return $this->discretionaryMileage;
+    }
+
+    public function setDiscretionaryMileage(?int $discretionaryMileage): self
+    {
+        $this->discretionaryMileage = $discretionaryMileage;
 
         return $this;
     }
