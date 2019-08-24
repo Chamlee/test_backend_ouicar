@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Car;
 use App\Entity\Indisponibility;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
@@ -19,32 +20,44 @@ class IndisponibilityRepository extends ServiceEntityRepository
         parent::__construct($registry, Indisponibility::class);
     }
 
-    // /**
-    //  * @return Indisponibility[] Returns an array of Indisponibility objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @param Car       $car
+     * @param string    $startingAt
+     * @param string    $endingAt
+     *
+     * @return bool
+     *
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function isCarAvailable(Car $car, $startingAt, $endingAt): bool
     {
-        return $this->createQueryBuilder('i')
-            ->andWhere('i.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('i.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $startingAt = new \DateTime($startingAt);
+        $endingAt = new \DateTime($endingAt);
 
-    /*
-    public function findOneBySomeField($value): ?Indisponibility
-    {
-        return $this->createQueryBuilder('i')
-            ->andWhere('i.exampleField = :val')
-            ->setParameter('val', $value)
+        if ($endingAt < $startingAt) {
+            return false;
+        }
+
+        $query = $this->createQueryBuilder('indisponibility')
+            ->select('COUNT(indisponibility.id)')
+            ->andWhere('indisponibility.car = :car')
+            ->andWhere(
+                //Case 1 x[x]
+                '(:startingAt <= indisponibility.startingAt AND :endingAt <= indisponibility.endingAt AND :endingAt >= indisponibility.startingAt) OR '.
+                //Case 2 [xx]
+                '(:startingAt >= indisponibility.startingAt AND :endingAt <= indisponibility.endingAt) OR '.
+                //Case 3 [x]x
+                '(:startingAt >= indisponibility.startingAt AND :startingAt <= indisponibility.endingAt AND :endingAt >= indisponibility.endingAt) OR '.
+                //Case 4 x[]x
+                '(:startingAt <= indisponibility.startingAt AND :endingAt >= indisponibility.endingAt)'
+            )
+            ->setParameter('car', $car)
+            ->setParameter('startingAt', $startingAt)
+            ->setParameter('endingAt', $endingAt)
             ->getQuery()
-            ->getOneOrNullResult()
         ;
+
+        return 0 === (int) $query->getSingleScalarResult();
     }
-    */
 }

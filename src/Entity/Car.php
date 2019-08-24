@@ -48,9 +48,15 @@ class Car
      */
     private $indisponibilities;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Rent", mappedBy="car")
+     */
+    private $rents;
+
     public function __construct()
     {
         $this->indisponibilities = new ArrayCollection();
+        $this->rents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -177,6 +183,37 @@ class Car
             // set the owning side to null (unless already changed)
             if ($indisponibility->getCar() === $this) {
                 $indisponibility->setCar(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Rent[]
+     */
+    public function getRents(): Collection
+    {
+        return $this->rents;
+    }
+
+    public function addRent(Rent $rent): self
+    {
+        if (!$this->rents->contains($rent)) {
+            $this->rents[] = $rent;
+            $rent->setCar($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRent(Rent $rent): self
+    {
+        if ($this->rents->contains($rent)) {
+            $this->rents->removeElement($rent);
+            // set the owning side to null (unless already changed)
+            if ($rent->getCar() === $this) {
+                $rent->setCar(null);
             }
         }
 
