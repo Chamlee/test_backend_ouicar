@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -40,6 +42,16 @@ class Car
      * @ORM\Column(type="integer")
      */
     private $priceDay7;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Indisponibility", mappedBy="car")
+     */
+    private $indisponibilities;
+
+    public function __construct()
+    {
+        $this->indisponibilities = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -138,5 +150,36 @@ class Car
         } else {
             return 4;
         }
+    }
+
+    /**
+     * @return Collection|Indisponibility[]
+     */
+    public function getIndisponibilities(): Collection
+    {
+        return $this->indisponibilities;
+    }
+
+    public function addIndisponibility(Indisponibility $indisponibility): self
+    {
+        if (!$this->indisponibilities->contains($indisponibility)) {
+            $this->indisponibilities[] = $indisponibility;
+            $indisponibility->setCar($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIndisponibility(Indisponibility $indisponibility): self
+    {
+        if ($this->indisponibilities->contains($indisponibility)) {
+            $this->indisponibilities->removeElement($indisponibility);
+            // set the owning side to null (unless already changed)
+            if ($indisponibility->getCar() === $this) {
+                $indisponibility->setCar(null);
+            }
+        }
+
+        return $this;
     }
 }
