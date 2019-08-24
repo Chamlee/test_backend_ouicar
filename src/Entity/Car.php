@@ -55,6 +55,7 @@ class Car
 
     /**
      * @ORM\Column(type="integer", nullable=true)
+     * @Assert\Positive
      */
     private $discretionaryMileage;
 
@@ -76,7 +77,7 @@ class Car
 
     public function setMileage(int $mileage): self
     {
-        $this->mileage = $this->extractMileage();
+        $this->mileage = $this->extractMileage($this->discretionaryMileage);
 
         return $this;
     }
@@ -141,20 +142,22 @@ class Car
     }
 
     /**
+     * @param int $discretionaryMileage
+     *
      * @return int
      *
      * @throws \OutOfBoundsException
      */
-    private static function extractMileage(): int
+    private static function extractMileage($discretionaryMileage): int
     {
-        if ($this->discretionaryMileage < 1) {
+        if ($discretionaryMileage < 0) {
             throw new \OutOfBoundsException();
         }
-        if ($this->discretionaryMileage < 50000) {
+        if ($discretionaryMileage < 50000) {
             return 1;
-        } elseif ($this->discretionaryMileage < 100000) {
+        } elseif ($discretionaryMileage < 100000) {
             return 2;
-        } elseif ($this->discretionaryMileage < 150000) {
+        } elseif ($discretionaryMileage < 150000) {
             return 3;
         } else {
             return 4;
